@@ -104,8 +104,33 @@ def compute_roq(tsl: float, net_inventory_pos: int, moq: int = 1, case_pack: int
     if case_pack > 1:
         roq = math.ceil(roq / case_pack) * case_pack
 
-    # Pallet rounding heuristic
+    # Pallet rounding heuristic: round up if remainder > 40% of pallet, else round down
     if pallet_qty > 1 and roq > 0:
         remainder = roq % pallet_qty
         if remainder > 0:
-            roq = (ro
+            if remainder / pallet_qty >= 0.4:
+                roq = math.ceil(roq / pallet_qty) * pallet_qty
+            else:
+                roq = math.floor(roq / pallet_qty) * pallet_qty
+                roq = max(roq, float(moq))
+
+    # Hard DOS ceiling — prevent hoarding effect
+    dos_capped = False
+    if avg_daily_demand > 0:
+        projected_dos = (net_inventory_pos + roq) / avg_daily_demand
+        if projected_dos > max_dos:
+            roq = max(0.0, max_dos * avg_daily_demand - net_inventory_pos)
+            if pallet_qty > 1:
+                roq = math.floor(roq / pallet_qty) * pallet_qty
+            dos_capped = True
+
+    roq_final = max(0, int(roq))
+    projected_dos_final = (net_inventory_pos + roq_final) / avg_daily_demand if avg_daily_demand > 0 else 0.0
+
+    return {
+        "roq_raw": int(roq_raw),
+        "roq_final": roq_final,
+        "projected_dos": round(projected_dos_final, 1),
+        "was_dos_capped": dos_capped,
+        "was_moq_applied": was_moq,
+    }

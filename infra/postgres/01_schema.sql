@@ -51,7 +51,7 @@ CREATE TABLE IF NOT EXISTS fact_sales (
     is_stockout BOOLEAN DEFAULT FALSE,
     is_cold_start BOOLEAN DEFAULT FALSE,
     source_system VARCHAR(64),
-    idempotency_key VARCHAR(255) UNIQUE,
+    idempotency_key VARCHAR(255),
     PRIMARY KEY(sales_id, sale_date)
 ) PARTITION BY RANGE (sale_date);
 

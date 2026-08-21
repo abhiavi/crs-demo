@@ -4,7 +4,7 @@ const CreditAdminView: React.FC = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedDistributor, setSelectedDistributor] = useState<{ name: string; wfId: string } | null>(null);
   const [bannerMessage, setBannerMessage] = useState<string | null>(null);
-  const [bannerTimeout, setBannerTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [bannerTimeout, setBannerTimeout] = useState<ReturnType<typeof setTimeout> | null>(null);
 
   const openModal = (distributor: { name: string; wfId: string }) => {
     setSelectedDistributor(distributor);

@@ -101,9 +101,10 @@ async def root():
         "docs": "/docs"
     }
 
-from routers import forecast, solver, overrides, credit
+from routers import forecast, solver, overrides, credit, workflows
 
 app.include_router(forecast.router)
 app.include_router(solver.router)
 app.include_router(overrides.router)
 app.include_router(credit.router)
+app.include_router(workflows.router)

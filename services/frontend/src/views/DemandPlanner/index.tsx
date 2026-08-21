@@ -171,16 +171,16 @@ const DemandPlannerView: React.FC = () => {
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis
                 dataKey="date"
-                tickFormatter={(date) => {
+                interval={4}
+                tickFormatter={(date: string) => {
                   const d = new Date(date);
-                  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).replace(/^0/, '');
+                  return d.toLocaleDateString('en-AU', { month: 'short', day: 'numeric' });
                 }}
-                tick={({ index }) => index % 5 === 0}
               />
               <YAxis />
               <Tooltip
-                labelFormatter={(date) => new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                formatter={(value) => value.toFixed(0)}
+                labelFormatter={(date: string) => new Date(date).toLocaleDateString('en-AU', { month: 'short', day: 'numeric' })}
+                formatter={(value: number) => [Math.round(value), '']}
               />
               <Legend verticalAlign="top" height={36} />
               <Area type="monotone" dataKey="p90" stroke="#bfdbfe" fillOpacity={0.4} />
@@ -218,20 +218,13 @@ const DemandPlannerView: React.FC = () => {
               { name: 'Price Index', w: 0.02 }
             ]}>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" tickInterval={1} />
-              <YAxis domain={[0, 0.35]} tickFormatter={(value) => `${(value * 100).toFixed(0)}%`} />
-              <Tooltip formatter={(value) => `${(value * 100).toFixed(1)}%`} />
-              <Legend verticalAlign="top" height={36} />
-              <Bar dataKey="w">
-                <Cell
-                  dataKey="w"
-                  fill={(props) => {
-                    const w = props.payload.w;
-                    if (w > 0.2) return '#1d4ed8';
-                    if (w > 0.1) return '#3b82f6';
-                    return '#93c5fd';
-                  }}
-                />
+              <XAxis dataKey="name" interval={0} tick={{ fontSize: 11 }} />
+              <YAxis domain={[0, 0.35]} tickFormatter={(v: number) => `${(v * 100).toFixed(0)}%`} />
+              <Tooltip formatter={(v: number) => `${(v * 100).toFixed(1)}%`} />
+              <Bar dataKey="w" radius={[0, 4, 4, 0]}>
+                {[0.31,0.24,0.18,0.12,0.08,0.05,0.02].map((w, i) => (
+                  <Cell key={i} fill={w > 0.2 ? '#1d4ed8' : w > 0.1 ? '#3b82f6' : '#93c5fd'} />
+                ))}
               </Bar>
             </BarChart>
           </ResponsiveContainer>

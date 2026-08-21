@@ -1,11 +1,9 @@
-version: '3.8'
-
 services:
   postgres:
     image: postgres:16-alpine
     container_name: crs_postgres
     ports:
-      - "5433:5432"
+      - "5434:5432"
     environment:
       POSTGRES_DB: crs_demo
       POSTGRES_USER: crs_user
@@ -28,15 +26,17 @@ services:
       postgres:
         condition: service_healthy
     environment:
-      DB: postgresql
+      DB: postgres12
       DB_PORT: 5432
-      DB_USER: crs_user
-      DB_PASSWORD: crs_secret_2024
-      DB_NAME: crs_temporal
+      POSTGRES_SEEDS: postgres
+      POSTGRES_USER: crs_user
+      POSTGRES_PWD: crs_secret_2024
+      TEMPORAL_DB: crs_temporal
+      VISIBILITY_DB: crs_temporal_visibility
       TEMPORAL_ADDRESS: temporal:7233
       SKIP_DEFAULT_NAMESPACE_CREATION: "false"
     ports:
-      - "7233:7233"
+      - "7234:7233"
     networks:
       - crs-network
 
@@ -47,9 +47,9 @@ services:
       - temporal
     environment:
       TEMPORAL_ADDRESS: temporal:7233
-      TEMPORAL_UI_PORT: 8080
+      TEMPORAL_UI_PORT: 8081
     ports:
-      - "8080:8080"
+      - "8081:8081"
     networks:
       - crs-network
 
@@ -62,8 +62,9 @@ services:
     environment:
       DATABASE_URL: postgresql://crs_user:crs_secret_2024@postgres:5432/crs_demo
       TEMPORAL_ADDRESS: temporal:7233
+      API_BASE_URL: http://api:8000
     ports:
-      - "8000:8000"
+      - "8001:8000"
     volumes:
       - ./services/api:/app
     networks:
@@ -89,9 +90,9 @@ services:
     depends_on:
       - api
     ports:
-      - "3000:3000"
+      - "3010:3000"
     environment:
-      VITE_API_URL: http://localhost:8000
+      VITE_API_URL: http://${GATEWAY_HOST}:8001
     networks:
       - crs-network
 
