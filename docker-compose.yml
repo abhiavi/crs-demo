@@ -1,0 +1,100 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: crs_postgres
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_DB: crs_demo
+      POSTGRES_USER: crs_user
+      POSTGRES_PASSWORD: crs_secret_2024
+    volumes:
+      - ./infra/postgres:/docker-entrypoint-initdb.d
+      - ./pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U crs_user -d crs_demo"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - crs-network
+
+  temporal:
+    image: temporalio/auto-setup:1.24.2
+    container_name: crs_temporal
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB: postgresql
+      DB_PORT: 5432
+      DB_USER: crs_user
+      DB_PASSWORD: crs_secret_2024
+      DB_NAME: crs_temporal
+      TEMPORAL_ADDRESS: temporal:7233
+      SKIP_DEFAULT_NAMESPACE_CREATION: "false"
+    ports:
+      - "7233:7233"
+    networks:
+      - crs-network
+
+  temporal-ui:
+    image: temporalio/ui:2.26.2
+    container_name: crs_temporal_ui
+    depends_on:
+      - temporal
+    environment:
+      TEMPORAL_ADDRESS: temporal:7233
+      TEMPORAL_UI_PORT: 8080
+    ports:
+      - "8080:8080"
+    networks:
+      - crs-network
+
+  api:
+    build: ./services/api
+    container_name: crs_api
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://crs_user:crs_secret_2024@postgres:5432/crs_demo
+      TEMPORAL_ADDRESS: temporal:7233
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./services/api:/app
+    networks:
+      - crs-network
+
+  worker:
+    build: ./services/worker
+    container_name: crs_worker
+    depends_on:
+      - api
+      - temporal
+    environment:
+      DATABASE_URL: postgresql://crs_user:crs_secret_2024@postgres:5432/crs_demo
+      TEMPORAL_ADDRESS: temporal:7233
+      LITELLM_BASE_URL: http://${GATEWAY_HOST}:4000
+      LITELLM_KEY: ${LITELLM_API_KEY}
+    networks:
+      - crs-network
+
+  frontend:
+    build: ./services/frontend
+    container_name: crs_frontend
+    depends_on:
+      - api
+    ports:
+      - "3000:3000"
+    environment:
+      VITE_API_URL: http://localhost:8000
+    networks:
+      - crs-network
+
+networks:
+  crs-network:
+    driver: bridge

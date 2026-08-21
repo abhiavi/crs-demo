@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+dist/
+build/
+*.egg
+.pytest_cache/
+
+# Node / React
+node_modules/
+services/frontend/dist/
+services/frontend/.vite/
+*.local
+
+# Environment
+.env
+.env.local
+.env.*.local
+/tmp/gh_tok
+
+# Database volumes
+pgdata/
+*.sql.bak
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+*.log
