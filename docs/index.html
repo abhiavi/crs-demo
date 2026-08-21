@@ -1,0 +1,1087 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CRS — Continuous Replenishment System | FMCG Demo</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --blue: #1d4ed8; --blue-light: #3b82f6; --blue-pale: #eff6ff;
+    --navy: #1e3a5f; --green: #16a34a; --amber: #d97706; --red: #dc2626;
+    --gray-50: #f9fafb; --gray-100: #f3f4f6; --gray-200: #e5e7eb;
+    --gray-500: #6b7280; --gray-700: #374151; --gray-900: #111827;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; color: var(--gray-900); background: #fff; font-size: 15px; line-height: 1.6; }
+
+  /* ─── COVER PAGE ─── */
+  .cover {
+    min-height: 100vh; background: linear-gradient(135deg, #0f2447 0%, #1d4ed8 60%, #0ea5e9 100%);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 60px 40px; text-align: center; color: #fff;
+    page-break-after: always;
+  }
+  .cover-logo { font-size: 13px; letter-spacing: 4px; text-transform: uppercase; opacity: 0.7; margin-bottom: 32px; }
+  .cover h1 { font-size: 54px; font-weight: 800; letter-spacing: -1px; line-height: 1.1; margin-bottom: 16px; }
+  .cover h1 span { color: #7dd3fc; }
+  .cover-sub { font-size: 20px; opacity: 0.85; margin-bottom: 40px; }
+  .cover-badges { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; margin-bottom: 48px; }
+  .badge { background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.25); padding: 6px 16px; border-radius: 99px; font-size: 13px; }
+  .cover-q { background: rgba(255,255,255,0.1); border-left: 4px solid #7dd3fc; padding: 20px 24px; border-radius: 8px; max-width: 680px; text-align: left; margin-top: 16px; }
+  .cover-q h3 { font-size: 13px; text-transform: uppercase; letter-spacing: 2px; opacity: 0.65; margin-bottom: 8px; }
+  .cover-q p { font-size: 15px; opacity: 0.92; }
+  .cover-meta { margin-top: 48px; font-size: 13px; opacity: 0.55; }
+
+  /* ─── LAYOUT ─── */
+  .page { max-width: 1100px; margin: 0 auto; padding: 56px 40px; }
+  .section-header { border-left: 5px solid var(--blue); padding-left: 16px; margin-bottom: 32px; }
+  .section-header .eyebrow { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 3px; color: var(--blue-light); margin-bottom: 4px; }
+  .section-header h2 { font-size: 32px; font-weight: 800; color: var(--navy); }
+  .section-header p { color: var(--gray-500); margin-top: 6px; font-size: 15px; }
+
+  /* ─── ANSWER CARDS (3 client questions) ─── */
+  .qa-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; margin-bottom: 48px; }
+  .qa-card { border-radius: 12px; padding: 28px; border: 1px solid var(--gray-200); position: relative; overflow: hidden; }
+  .qa-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; }
+  .qa-card.q1::before { background: var(--blue); }
+  .qa-card.q2::before { background: var(--green); }
+  .qa-card.q3::before { background: var(--amber); }
+  .qa-card .q-num { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: var(--gray-500); margin-bottom: 8px; }
+  .qa-card h3 { font-size: 17px; font-weight: 700; color: var(--gray-900); margin-bottom: 12px; line-height: 1.3; }
+  .qa-card p, .qa-card li { font-size: 14px; color: var(--gray-700); line-height: 1.65; }
+  .qa-card ul { padding-left: 18px; }
+  .qa-card li { margin-bottom: 4px; }
+  .formula { background: var(--blue-pale); border-radius: 6px; padding: 10px 14px; margin: 10px 0; font-family: 'Courier New', monospace; font-size: 13px; color: var(--blue); border: 1px solid #bfdbfe; }
+
+  /* ─── ARCHITECTURE ─── */
+  .arch-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 32px 0; }
+  .arch-box { border: 2px solid var(--gray-200); border-radius: 10px; padding: 20px; text-align: center; transition: all 0.2s; }
+  .arch-box:hover { border-color: var(--blue-light); background: var(--blue-pale); }
+  .arch-icon { font-size: 28px; margin-bottom: 8px; }
+  .arch-box h4 { font-size: 14px; font-weight: 700; color: var(--navy); margin-bottom: 4px; }
+  .arch-box p { font-size: 12px; color: var(--gray-500); }
+  .arch-flow { display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; margin: 24px 0; }
+  .flow-step { background: var(--navy); color: #fff; padding: 8px 16px; border-radius: 6px; font-size: 12px; font-weight: 600; }
+  .flow-arrow { color: var(--blue-light); font-size: 18px; font-weight: bold; }
+  .flow-step.active { background: var(--blue); }
+
+  /* ─── PERSONA SECTIONS ─── */
+  .persona-header { display: flex; align-items: center; gap: 16px; padding: 20px 28px; border-radius: 12px; margin-bottom: 28px; color: #fff; }
+  .persona-header.planner { background: linear-gradient(135deg, #1e3a5f, #1d4ed8); }
+  .persona-header.executive { background: linear-gradient(135deg, #14532d, #16a34a); }
+  .persona-header.distributor { background: linear-gradient(135deg, #78350f, #d97706); }
+  .persona-header.credit { background: linear-gradient(135deg, #3b0764, #7c3aed); }
+  .persona-icon { font-size: 36px; }
+  .persona-header h2 { font-size: 26px; font-weight: 800; }
+  .persona-header p { font-size: 14px; opacity: 0.85; margin-top: 2px; }
+
+  /* ─── FEATURE CARDS ─── */
+  .feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; margin: 24px 0; }
+  .feature-card { border: 1px solid var(--gray-200); border-radius: 10px; padding: 20px; }
+  .feature-card h4 { font-size: 15px; font-weight: 700; color: var(--navy); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+  .feature-card p, .feature-card li { font-size: 13.5px; color: var(--gray-700); line-height: 1.6; }
+  .feature-card ul { padding-left: 16px; }
+  .feature-card li { margin-bottom: 3px; }
+  .tag { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 4px; margin-right: 4px; margin-bottom: 4px; }
+  .tag.red { background: #fee2e2; color: #991b1b; }
+  .tag.orange { background: #ffedd5; color: #92400e; }
+  .tag.blue { background: #dbeafe; color: #1e40af; }
+  .tag.green { background: #dcfce7; color: #15803d; }
+  .tag.purple { background: #ede9fe; color: #5b21b6; }
+
+  /* ─── MOCK DASHBOARDS ─── */
+  .mock-dashboard { border: 2px solid var(--gray-200); border-radius: 12px; overflow: hidden; margin: 24px 0; }
+  .mock-topbar { background: var(--navy); color: #fff; padding: 10px 16px; display: flex; align-items: center; gap: 12px; font-size: 13px; }
+  .mock-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .mock-body { padding: 20px; background: var(--gray-50); }
+  .stat-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+  .stat-card { background: #fff; border: 1px solid var(--gray-200); border-radius: 8px; padding: 14px 16px; }
+  .stat-card .label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--gray-500); margin-bottom: 4px; }
+  .stat-card .value { font-size: 22px; font-weight: 800; color: var(--navy); }
+  .stat-card .delta { font-size: 12px; margin-top: 2px; }
+  .delta.up { color: var(--green); } .delta.down { color: var(--red); } .delta.warn { color: var(--amber); }
+  .mock-table { width: 100%; border-collapse: collapse; font-size: 13px; background: #fff; border-radius: 8px; overflow: hidden; border: 1px solid var(--gray-200); }
+  .mock-table thead { background: var(--gray-100); }
+  .mock-table th { padding: 10px 12px; text-align: left; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--gray-500); }
+  .mock-table td { padding: 10px 12px; border-top: 1px solid var(--gray-100); }
+  .mock-table tr:hover { background: var(--blue-pale); }
+
+  /* ─── CHART CONTAINERS ─── */
+  .chart-wrap { background: #fff; border: 1px solid var(--gray-200); border-radius: 10px; padding: 16px; margin: 16px 0; }
+  .chart-title { font-size: 13px; font-weight: 700; color: var(--gray-700); margin-bottom: 12px; }
+  .chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+  /* ─── TECH SPECS ─── */
+  .tech-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+  .tech-card { border-left: 4px solid var(--blue); background: var(--blue-pale); border-radius: 6px; padding: 16px; }
+  .tech-card h4 { font-size: 13px; font-weight: 700; color: var(--blue); margin-bottom: 8px; }
+  .tech-card p, .tech-card li { font-size: 13px; color: var(--gray-700); }
+  .tech-card ul { padding-left: 16px; }
+
+  /* ─── MILP VISUALIZATION ─── */
+  .milp-box { background: #0f172a; color: #e2e8f0; border-radius: 10px; padding: 24px; font-family: 'Courier New', monospace; font-size: 13px; line-height: 1.8; margin: 16px 0; }
+  .milp-comment { color: #64748b; }
+  .milp-keyword { color: #7dd3fc; }
+  .milp-var { color: #a5f3fc; }
+  .milp-num { color: #fbbf24; }
+
+  /* ─── TEMPORAL SAGA ─── */
+  .saga-flow { display: flex; overflow-x: auto; gap: 0; margin: 24px 0; padding-bottom: 8px; }
+  .saga-step { min-width: 120px; text-align: center; position: relative; }
+  .saga-step:not(:last-child)::after { content: '→'; position: absolute; right: -12px; top: 18px; color: var(--blue-light); font-weight: bold; font-size: 18px; }
+  .saga-circle { width: 48px; height: 48px; border-radius: 50%; margin: 0 auto 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+  .saga-step.done .saga-circle { background: var(--green); }
+  .saga-step.active .saga-circle { background: var(--blue); animation: pulse 2s infinite; }
+  .saga-step.pending .saga-circle { background: var(--gray-200); }
+  .saga-step.compensate .saga-circle { background: var(--red); }
+  @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.6; } }
+  .saga-label { font-size: 11px; font-weight: 600; color: var(--gray-700); }
+  .saga-sub { font-size: 10px; color: var(--gray-500); margin-top: 2px; }
+
+  /* ─── ACCESS INFO ─── */
+  .access-card { background: linear-gradient(135deg, var(--navy), #1d4ed8); color: #fff; border-radius: 16px; padding: 40px; margin: 32px 0; }
+  .access-card h3 { font-size: 22px; font-weight: 800; margin-bottom: 8px; }
+  .access-card p { opacity: 0.8; margin-bottom: 24px; }
+  .access-links { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+  .access-link { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 10px; padding: 16px 20px; }
+  .access-link .al-label { font-size: 11px; opacity: 0.65; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+  .access-link .al-url { font-size: 14px; font-weight: 700; word-break: break-all; }
+  .access-link .al-sub { font-size: 12px; opacity: 0.7; margin-top: 4px; }
+
+  /* ─── DIVIDERS ─── */
+  .section-divider { border: none; border-top: 2px solid var(--gray-100); margin: 56px 0; }
+  .highlight-box { background: var(--blue-pale); border: 1px solid #bfdbfe; border-radius: 8px; padding: 16px 20px; margin: 16px 0; font-size: 14px; color: var(--navy); }
+  .warning-box { background: #fff7ed; border: 1px solid #fed7aa; border-radius: 8px; padding: 14px 18px; margin: 12px 0; font-size: 13.5px; color: #92400e; }
+
+  /* ─── PRINT ─── */
+  @media print {
+    body { font-size: 12px; }
+    .page { padding: 32px 24px; max-width: 100%; }
+    .cover { min-height: auto; padding: 40px 24px; }
+    .cover h1 { font-size: 36px; }
+    canvas { max-height: 200px !important; }
+    .no-print { display: none; }
+  }
+
+  /* ─── NAV ─── */
+  .toc { position: sticky; top: 0; z-index: 100; background: #fff; border-bottom: 2px solid var(--gray-100); padding: 10px 40px; display: flex; gap: 24px; overflow-x: auto; }
+  .toc a { font-size: 13px; font-weight: 600; color: var(--gray-500); text-decoration: none; white-space: nowrap; padding: 4px 0; border-bottom: 2px solid transparent; }
+  .toc a:hover { color: var(--blue); border-color: var(--blue); }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- COVER -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+<div class="cover">
+  <div class="cover-logo">Confidential · Client Presentation · August 2026</div>
+  <h1>Continuous Replenishment<br><span>System (CRS)</span></h1>
+  <div class="cover-sub">AI-Powered Vendor-Managed Inventory for FMCG Distribution</div>
+  <div class="cover-badges">
+    <span class="badge">🏭 FMCG Beverages · Australia</span>
+    <span class="badge">🤖 TFT · SBA · OR-Tools MILP</span>
+    <span class="badge">⚡ Temporal.io Saga Orchestration</span>
+    <span class="badge">📊 5 Distributors · 30 SKUs · 52-Week History</span>
+    <span class="badge">🔴 Live Demo Available</span>
+  </div>
+
+  <div class="cover-q">
+    <h3>Directly Addresses Client Assessment Topics</h3>
+    <p>This document and live demo answer all three benchmark questions:<br>
+    (1) Forecast &amp; replenishment generation at distributor-SKU level<br>
+    (2) Override &amp; modification workflow with full audit trail<br>
+    (3) Fair-share credit allocation using MILP optimisation</p>
+  </div>
+
+  <div class="cover-meta">Prepared by Abhishek Sharma · Autonomous VMI Architecture · azure-01 Fleet Node</div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- NAV -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+<nav class="toc no-print">
+  <a href="#overview">Overview</a>
+  <a href="#questions">Client Q&amp;A</a>
+  <a href="#planner">Demand Planner</a>
+  <a href="#executive">Executive</a>
+  <a href="#distributor">Distributor</a>
+  <a href="#credit">Credit Admin</a>
+  <a href="#tech">Architecture</a>
+  <a href="#access">Live Demo</a>
+</nav>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- SECTION 1 — OVERVIEW -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+<div class="page" id="overview">
+  <div class="section-header">
+    <div class="eyebrow">Section 1</div>
+    <h2>What is CRS?</h2>
+    <p>An autonomous, end-to-end replenishment engine that eliminates manual spreadsheet-driven ordering in FMCG distribution networks.</p>
+  </div>
+
+  <div class="arch-grid">
+    <div class="arch-box">
+      <div class="arch-icon">📡</div>
+      <h4>POS Telemetry Ingestion</h4>
+      <p>Real-time distributor sell-out data, stockout detection, and Bayesian imputation of missing periods</p>
+    </div>
+    <div class="arch-box">
+      <div class="arch-icon">🧠</div>
+      <h4>Algorithmic Demand Forecasting</h4>
+      <p>ADI/CV² routing to ETS, SBA, ARIMA, or TFT — per SKU, per distributor, every cycle</p>
+    </div>
+    <div class="arch-box">
+      <div class="arch-icon">📦</div>
+      <h4>ROQ Generation</h4>
+      <p>Target Stock Level (TSL) → Replenishment Order Quantity with MOQ, case-pack, pallet, and DOS ceiling constraints</p>
+    </div>
+    <div class="arch-box">
+      <div class="arch-icon">💳</div>
+      <h4>Credit-Aware Allocation</h4>
+      <p>OR-Tools MILP maximises minimum Days-of-Stock across distributors given live AR/credit limits</p>
+    </div>
+    <div class="arch-box">
+      <div class="arch-icon">⚡</div>
+      <h4>Temporal.io Saga Orchestration</h4>
+      <p>Durable, compensating workflow handles approvals, ERP release, and rollback atomically</p>
+    </div>
+    <div class="arch-box">
+      <div class="arch-icon">👥</div>
+      <h4>4-Persona Dashboards</h4>
+      <p>Demand Planner · Sales Executive · Distributor · Credit Admin — purpose-built UX per role</p>
+    </div>
+  </div>
+
+  <div class="section-header" style="margin-top:48px;">
+    <div class="eyebrow">Replenishment Cycle</div>
+    <h2>End-to-End Flow</h2>
+  </div>
+
+  <div class="arch-flow">
+    <div class="flow-step active">1. SENSING<br><span style="font-size:10px;opacity:0.75">POS Ingest</span></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step active">2. FORECAST<br><span style="font-size:10px;opacity:0.75">ADI/CV²→Model</span></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step active">3. ROQ CALC<br><span style="font-size:10px;opacity:0.75">TSL Formula</span></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step active">4. CREDIT CHECK<br><span style="font-size:10px;opacity:0.75">ERP Query</span></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step active">5. FAIR-SHARE<br><span style="font-size:10px;opacity:0.75">MILP Solver</span></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step active">6. APPROVAL<br><span style="font-size:10px;opacity:0.75">Human Gate</span></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step active">7. ERP RELEASE<br><span style="font-size:10px;opacity:0.75">Order Creation</span></div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>Bullwhip Effect Prevention:</strong> CRS operates on distributor <em>sell-out</em> POS data (not distributor purchase orders), eliminating the demand signal amplification that causes the bullwhip effect across supply chain echelons. Stockout periods are Bayesian-imputed using surrounding demand patterns rather than treated as zero demand.
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- SECTION 2 — CLIENT QUESTIONS -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+<hr class="section-divider">
+<div class="page" id="questions">
+  <div class="section-header">
+    <div class="eyebrow">Section 2 — Assessment Q&amp;A</div>
+    <h2>Client Benchmark Topics Answered</h2>
+    <p>Technical depth for each of the three assessment questions from the consulting brief.</p>
+  </div>
+
+  <div class="qa-grid">
+    <!-- Q1 -->
+    <div class="qa-card q1">
+      <div class="q-num">Topic 1 · Forecast &amp; Replenishment Generation</div>
+      <h3>How does CRS generate forecasts and replenishment recommendations at the distributor-SKU level?</h3>
+      <p><strong>Step 1 — Demand Classification (ADI/CV² Matrix):</strong></p>
+      <ul>
+        <li>ADI (Average Inter-Demand Interval) &amp; CV² (Squared CoV) computed per SKU</li>
+        <li>ADI &lt; 1.32 + CV² &lt; 0.49 → <strong>ETS</strong> (smooth, fast-moving)</li>
+        <li>ADI ≥ 1.32 + CV² &lt; 0.49 → <strong>SBA</strong> (intermittent)</li>
+        <li>ADI &lt; 1.32 + CV² ≥ 0.49 → <strong>ARIMA</strong> (erratic)</li>
+        <li>ADI ≥ 1.32 + CV² ≥ 0.49 → <strong>SBA</strong> (lumpy)</li>
+        <li>Revenue-A or high covariate R² → <strong>TFT</strong> (neural, multi-horizon)</li>
+      </ul>
+      <br>
+      <p><strong>Step 2 — Syntetos-Boylan Approximation (SBA) for intermittent/lumpy:</strong></p>
+      <div class="formula">f_SBA = (1 − α/2) × z̄ₜ / p̄ₜ</div>
+      <p>Debiases Croston's method by the factor (1−α/2) where α is the smoothing constant, z̄ₜ is the demand-size estimate, and p̄ₜ is the inter-demand interval estimate.</p>
+      <br>
+      <p><strong>Step 3 — Target Stock Level (TSL):</strong></p>
+      <div class="formula">TSL = D̄(T+L) + Z·√(L·σD² + D̄²·σL²)</div>
+      <p>T=review period, L=lead time, σD=demand std dev, σL=lead-time std dev, Z=service-level z-score. Includes lead-time variance decomposition.</p>
+      <br>
+      <p><strong>Step 4 — ROQ with logistics constraints:</strong></p>
+      <ul>
+        <li>ROQ_raw = max(0, TSL − Net Inventory Position)</li>
+        <li>Apply MOQ floor → round up to case pack → pallet heuristic (round up if remainder ≥ 40% of pallet)</li>
+        <li>DOS ceiling cap: if projected DOS &gt; 90 days → hard cut to prevent hoarding</li>
+      </ul>
+    </div>
+
+    <!-- Q2 -->
+    <div class="qa-card q2">
+      <div class="q-num">Topic 2 · Override &amp; Modification Workflow</div>
+      <h3>At what stages can Sales, planners, or distributors override CRS-generated recommendations?</h3>
+      <p><strong>4 Override Entry Points:</strong></p>
+      <ul>
+        <li><strong>Demand Planner:</strong> Adjusts forecast quantity in Exception Triage panel (P90 breach, negative FVA, model reclassification). Override range gated to ±15% of P50 to prevent arbitrary changes.</li>
+        <li><strong>Sales / Executive:</strong> Revenue-target simulator adjusts network-level uplift applied proportionally across distributors using revenue tier weights.</li>
+        <li><strong>Distributor:</strong> Requests quantity adjustments via portal (e.g., pre-promotional build-up, warehouse capacity constraints). Triggers re-approval workflow.</li>
+        <li><strong>Credit Admin:</strong> Manual credit-hold release unblocks distributors from CREDIT_HOLD status, allowing solver to process their allocations.</li>
+      </ul>
+      <br>
+      <p><strong>Override Accountability (Forecast Value Added — FVA):</strong></p>
+      <div class="formula">FVA = MAPE_naive − MAPE_adjusted</div>
+      <p>Every manual override is logged with original_qty, overridden_qty, pct_change, reason_code, user_id, and FVA scores in <code>audit_override_log</code>. Negative FVA (override made forecast worse than the naive baseline) triggers an exception flag in the next cycle, visible to the Demand Planner.</p>
+      <br>
+      <p><strong>Reason Codes tracked:</strong></p>
+      <ul>
+        <li>PROMOTIONAL_UPLIFT · COMPETITOR_DISRUPTION</li>
+        <li>SEASONAL_PRE_BUILD · ERRONEOUS_FORECAST</li>
+        <li>WAREHOUSE_CAPACITY · CREDIT_CONSTRAINT</li>
+      </ul>
+      <br>
+      <p><strong>Temporal.io Human-in-the-Loop Gate:</strong> After ROQ calculation and before ERP release, the saga pauses at APPROVAL_WAIT. A senior planner can approve or reject via API signal. Rejection triggers compensating transactions to reverse any ERP credit holds already placed.</p>
+    </div>
+
+    <!-- Q3 -->
+    <div class="qa-card q3">
+      <div class="q-num">Topic 3 · Fair-Share Credit Allocation</div>
+      <h3>When a distributor's credit is insufficient, how does CRS allocate the available amount across SKUs?</h3>
+      <p><strong>OR-Tools MILP Formulation (SCIP backend, &lt;2ms solve time):</strong></p>
+      <div class="formula">Maximise: z_min (minimum DOS across all eligible SKUs)</div>
+      <div class="formula">Subject to: Σ (x_i × unit_cost_i) ≤ credit_available</div>
+      <div class="formula">∀i: x_i × demand_i − z_min × demand_i ≥ −NIP_i (DOS ≥ z_min)</div>
+      <div class="formula">∀i Tier-1: x_i ≥ 0.90 × ROQ_i (90% floor reservation)</div>
+      <p>Where x_i = allocated order quantity, z_min = auxiliary continuous variable = minimum DOS any SKU achieves.</p>
+      <br>
+      <p><strong>Tier Prioritisation:</strong></p>
+      <ul>
+        <li><strong>Tier 1 (A-class revenue):</strong> 90% floor reservation — never cut below 90% of their ROQ regardless of credit pressure</li>
+        <li><strong>Tier 2 (B-class):</strong> Participate in fair-share allocation pool</li>
+        <li><strong>Tier 3 (C-class):</strong> Excluded from allocation when credit &lt; 60% of total ROQ value</li>
+      </ul>
+      <br>
+      <p><strong>What "fair share" means:</strong> Rather than first-come-first-served or proportional-cut, the MILP finds the allocation that maximises the worst-off distributor's DOS. If two distributors have different demand rates, they receive different quantities but identical Days-of-Stock coverage — genuinely equitable, not just proportional.</p>
+      <br>
+      <p><strong>Output logged to:</strong> <code>credit_allocation_ledger</code> with solver_status (WITHIN_LIMIT / CREDIT_HOLD / FAIR_SHARE_APPLIED), solver_run_ms, and allocated_order_val per distributor-SKU batch.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- SECTION 3 — DEMAND PLANNER PERSONA -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+<hr class="section-divider">
+<div class="page" id="planner">
+  <div class="persona-header planner">
+    <div class="persona-icon">📊</div>
+    <div>
+      <h2>Persona 1 — Demand Planner</h2>
+      <p>Exception-driven workflow · Forecast explainability · Human override with FVA accountability</p>
+    </div>
+  </div>
+
+  <p style="color:var(--gray-700);margin-bottom:24px;">The Demand Planner dashboard surfaces only items that need human attention — outliers, reclassifications, and negative FVA overrides — rather than showing all SKUs. This exception-driven UX is critical for planners managing thousands of SKU-distributor combinations.</p>
+
+  <div class="feature-grid">
+    <div class="feature-card">
+      <h4>🚨 Exception Triage Grid</h4>
+      <p>Automatically flags SKUs requiring planner attention:</p>
+      <ul>
+        <li><span class="tag red">P90 BREACH</span> Actuals exceeded 90th-percentile forecast band — model underestimating demand</li>
+        <li><span class="tag orange">NEGATIVE FVA</span> Previous manual override made accuracy worse than naive baseline</li>
+        <li><span class="tag blue">RECLASSIFICATION</span> Demand pattern changed class (e.g., ETS→TFT) this cycle</li>
+      </ul>
+    </div>
+    <div class="feature-card">
+      <h4>📈 P10/P50/P90 Forecast Bands</h4>
+      <p>Probabilistic forecast bands from the TFT/ETS/SBA model:</p>
+      <ul>
+        <li><strong>P10</strong> — 10th percentile (pessimistic)</li>
+        <li><strong>P50</strong> — Median forecast (planning baseline)</li>
+        <li><strong>P90</strong> — 90th percentile (safety stock trigger)</li>
+        <li>Actual demand overlay shows historical accuracy</li>
+      </ul>
+    </div>
+    <div class="feature-card">
+      <h4>🔍 TFT Attention Weights</h4>
+      <p>Model interpretability for the TFT neural forecaster — shows which input features most influenced this cycle's forecast:</p>
+      <ul>
+        <li>Lag Sales W-52 (31%) · Promo Depth (24%)</li>
+        <li>Day of Week (18%) · Weather Index (12%)</li>
+        <li>Lag Sales W-4 (8%) · Holiday Flag (5%)</li>
+      </ul>
+      <p style="margin-top:6px;color:var(--gray-500);font-size:12px;">Allows planners to challenge the model's reasoning, not just its number.</p>
+    </div>
+    <div class="feature-card">
+      <h4>✏️ Override Submission</h4>
+      <p>Inline override form per SKU:</p>
+      <ul>
+        <li>Quantity slider gated to ±15% of P50</li>
+        <li>Mandatory reason code selection</li>
+        <li>Submitted override triggers FVA re-evaluation next cycle</li>
+        <li>Full audit trail in <code>audit_override_log</code></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Mock Dashboard -->
+  <div class="mock-dashboard">
+    <div class="mock-topbar">
+      <div class="mock-dot" style="background:#ef4444"></div>
+      <div class="mock-dot" style="background:#f59e0b"></div>
+      <div class="mock-dot" style="background:#22c55e"></div>
+      <span style="margin-left:8px;opacity:0.75">CRS · Demand Planner Dashboard</span>
+      <span style="margin-left:auto;opacity:0.55;font-size:11px">Week 34, 2026 · Cycle: Auto-generated</span>
+    </div>
+    <div class="mock-body">
+      <table class="mock-table">
+        <thead>
+          <tr><th>SKU</th><th>Exception</th><th>Model</th><th>P50 Forecast</th><th>FVA Score</th><th>Action</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Solo Lemon 375mL Can 24pk</strong></td>
+            <td><span class="tag red">P90 BREACH</span></td>
+            <td>TFT</td><td>452 units</td>
+            <td style="color:var(--green)">+1.8 pp</td>
+            <td><a href="#" style="color:var(--blue);font-size:12px">Override ↗</a></td>
+          </tr>
+          <tr>
+            <td><strong>Powerade Mountain Blast 600mL</strong></td>
+            <td><span class="tag orange">NEGATIVE FVA</span></td>
+            <td>ETS</td><td>218 units</td>
+            <td style="color:var(--red)">−6.2 pp</td>
+            <td><a href="#" style="color:var(--blue);font-size:12px">Override ↗</a></td>
+          </tr>
+          <tr>
+            <td><strong>Golden Circle OJ 2L 6pk</strong></td>
+            <td><span class="tag blue">RECLASSIFICATION</span></td>
+            <td>ETS→TFT</td><td>891 units</td>
+            <td style="color:var(--gray-500)">—</td>
+            <td><a href="#" style="color:var(--blue);font-size:12px">Review ↗</a></td>
+          </tr>
+          <tr>
+            <td><strong>V Energy 250mL 24pk</strong></td>
+            <td><span class="tag red">P90 BREACH</span></td>
+            <td>SBA</td><td>134 units</td>
+            <td style="color:var(--green)">+2.1 pp</td>
+            <td><a href="#" style="color:var(--blue);font-size:12px">Override ↗</a></td>
+          </tr>
+          <tr>
+            <td><strong>Bundaberg Ginger Beer 375mL</strong></td>
+            <td><span class="tag orange">NEGATIVE FVA</span></td>
+            <td>ARIMA</td><td>67 units</td>
+            <td style="color:var(--red)">−3.4 pp</td>
+            <td><a href="#" style="color:var(--blue);font-size:12px">Override ↗</a></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="chart-grid">
+    <div class="chart-wrap">
+      <div class="chart-title">P10/P50/P90 Forecast Bands — Solo Lemon 375mL (14-Day Horizon)</div>
+      <canvas id="forecastChart" height="220"></canvas>
+    </div>
+    <div class="chart-wrap">
+      <div class="chart-title">TFT Attention Weights — Feature Importance</div>
+      <canvas id="attentionChart" height="220"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- SECTION 4 — EXECUTIVE PERSONA -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+<hr class="section-divider">
+<div class="page" id="executive">
+  <div class="persona-header executive">
+    <div class="persona-icon">📈</div>
+    <div>
+      <h2>Persona 2 — Sales / Executive</h2>
+      <p>Network KPI health · S&amp;OP revenue simulator · DOS by distributor · Strategic levers</p>
+    </div>
+  </div>
+
+  <p style="color:var(--gray-700);margin-bottom:24px;">The Executive dashboard aggregates the replenishment network into a single-glance view — are we on track with revenue targets, which distributors are approaching stockout, and what happens to revenue if we adjust the service level policy?</p>
+
+  <div class="feature-grid">
+    <div class="feature-card">
+      <h4>📊 Network KPI Dashboard</h4>
+      <ul>
+        <li><strong>Average Network DOS</strong> — weighted by distributor revenue; 28.4 days target</li>
+        <li><strong>Stockout Risk SKUs</strong> — count of SKU-distributor pairs below safety stock</li>
+        <li><strong>Credit Headroom %</strong> — available credit as % of recommended order value</li>
+        <li><strong>Cycle Fill Rate</strong> — % of recommended ROQ that cleared credit and ERP</li>
+      </ul>
+    </div>
+    <div class="feature-card">
+      <h4>🎯 S&amp;OP Revenue Simulator</h4>
+      <p>Interactive slider to model revenue impact of policy changes:</p>
+      <ul>
+        <li>Adjust target DOS from 14 to 60 days</li>
+        <li>See projected revenue uplift vs. working capital cost</li>
+        <li>Model promotional uplift % across all distributors</li>
+        <li>Output feeds directly into next cycle's ROQ calculation</li>
+      </ul>
+    </div>
+    <div class="feature-card">
+      <h4>🗺️ Distributor DOS Health Map</h4>
+      <ul>
+        <li>Bar chart of current DOS by distributor</li>
+        <li>Red threshold line at safety stock equivalent</li>
+        <li>DIST-AU-BNE highlighted in CREDIT_HOLD status</li>
+        <li>Colour coding: green ≥ 21 days, amber 14–21, red &lt; 14</li>
+      </ul>
+    </div>
+    <div class="feature-card">
+      <h4>⚠️ Credit Hold Impact View</h4>
+      <ul>
+        <li>Shows revenue at risk from distributors in CREDIT_HOLD</li>
+        <li>Links to Credit Admin for one-click release approval</li>
+        <li>Historical credit utilisation trend (30-day rolling)</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="mock-dashboard">
+    <div class="mock-topbar">
+      <div class="mock-dot" style="background:#ef4444"></div>
+      <div class="mock-dot" style="background:#f59e0b"></div>
+      <div class="mock-dot" style="background:#22c55e"></div>
+      <span style="margin-left:8px;opacity:0.75">CRS · Sales / Executive Dashboard</span>
+    </div>
+    <div class="mock-body">
+      <div class="stat-row">
+        <div class="stat-card">
+          <div class="label">Avg Network DOS</div>
+          <div class="value">28.4</div>
+          <div class="delta up">↑ 2.1 vs last cycle</div>
+        </div>
+        <div class="stat-card">
+          <div class="label">Stockout Risk SKUs</div>
+          <div class="value" style="color:var(--amber)">7</div>
+          <div class="delta warn">↑ 3 new this cycle</div>
+        </div>
+        <div class="stat-card">
+          <div class="label">Cycle Fill Rate</div>
+          <div class="value" style="color:var(--green)">94.2%</div>
+          <div class="delta up">↑ 0.8pp vs target</div>
+        </div>
+        <div class="stat-card">
+          <div class="label">Revenue at Risk</div>
+          <div class="value" style="color:var(--red)">$182K</div>
+          <div class="delta down">DIST-AU-BNE hold</div>
+        </div>
+      </div>
+      <div class="chart-wrap">
+        <div class="chart-title">Days-of-Stock by Distributor — Current Cycle</div>
+        <canvas id="dosChart" height="200"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- SECTION 5 — DISTRIBUTOR PERSONA -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+<hr class="section-divider">
+<div class="page" id="distributor">
+  <div class="persona-header distributor">
+    <div class="persona-icon">🚚</div>
+    <div>
+      <h2>Persona 3 — Distributor Portal</h2>
+      <p>In-transit tracking · 14-day DOS projection · Adjustment requests · Self-service visibility</p>
+    </div>
+  </div>
+
+  <p style="color:var(--gray-700);margin-bottom:24px;">Distributors traditionally operate with zero visibility into the replenishment logic that governs their stock. The Distributor Portal gives them a self-service view: what's inbound, when it arrives, and projected stock health by SKU — with a structured channel to request adjustments.</p>
+
+  <div class="feature-grid">
+    <div class="feature-card">
+      <h4>📦 In-Transit Shipment Tracker</h4>
+      <ul>
+        <li>All open replenishment orders with ETA and quantity</li>
+        <li>Status: CONFIRMED → IN_TRANSIT → DELIVERED</li>
+        <li>Alerts for shipments &gt; 2 days past expected ETA</li>
+        <li>Consolidated view across all SKUs in one distributor</li>
+      </ul>
+    </div>
+    <div class="feature-card">
+      <h4>📉 14-Day DOS Projection</h4>
+      <ul>
+        <li>Area chart showing projected stock level for top SKUs</li>
+        <li>Inbound inventory incorporated into projection curve</li>
+        <li>Red threshold line at service-level safety stock</li>
+        <li>Helps distributor plan warehouse capacity and promotions</li>
+      </ul>
+    </div>
+    <div class="feature-card">
+      <h4>📝 Adjustment Request Form</h4>
+      <ul>
+        <li>Structured form: SKU, requested quantity, reason, priority</li>
+        <li>Reason codes: PROMO, CAPACITY, COMPETITIVE, OTHER</li>
+        <li>Triggers Temporal.io workflow — planner gets notified immediately</li>
+        <li>Distributor sees request status in real-time</li>
+      </ul>
+    </div>
+    <div class="feature-card">
+      <h4>📋 Credit Utilisation View</h4>
+      <ul>
+        <li>Shows current AR balance vs. credit limit</li>
+        <li>Utilisation % with colour-coded status (green/amber/red)</li>
+        <li>Estimated days until next payment clearing</li>
+        <li>CREDIT_HOLD notification with escalation path</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="mock-dashboard">
+    <div class="mock-topbar">
+      <div class="mock-dot" style="background:#ef4444"></div>
+      <div class="mock-dot" style="background:#f59e0b"></div>
+      <div class="mock-dot" style="background:#22c55e"></div>
+      <span style="margin-left:8px;opacity:0.75">CRS · Distributor Portal — DIST-AU-BNE (Brisbane)</span>
+    </div>
+    <div class="mock-body">
+      <table class="mock-table" style="margin-bottom:16px;">
+        <thead><tr><th>Order ID</th><th>SKU</th><th>Qty</th><th>Status</th><th>ETA</th><th>Value</th></tr></thead>
+        <tbody>
+          <tr><td>ORD-2026-0841</td><td>Solo Lemon 375mL 24pk</td><td>480 units</td><td><span class="tag blue">IN_TRANSIT</span></td><td>23 Aug</td><td>$3,840</td></tr>
+          <tr><td>ORD-2026-0842</td><td>Powerade Mountain Blast</td><td>240 units</td><td><span class="tag blue">IN_TRANSIT</span></td><td>23 Aug</td><td>$1,680</td></tr>
+          <tr><td>ORD-2026-0843</td><td>Golden Circle OJ 2L</td><td>96 units</td><td><span class="tag green">CONFIRMED</span></td><td>25 Aug</td><td>$2,112</td></tr>
+          <tr><td>ORD-2026-0839</td><td>Bundaberg Ginger Beer</td><td>144 units</td><td><span class="tag orange">⚠ ETA DELAYED</span></td><td>+2d</td><td>$1,584</td></tr>
+        </tbody>
+      </table>
+      <div class="chart-wrap">
+        <div class="chart-title">14-Day Projected DOS — Top 3 SKUs for DIST-AU-BNE</div>
+        <canvas id="projectionChart" height="200"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- SECTION 6 — CREDIT ADMIN PERSONA -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+<hr class="section-divider">
+<div class="page" id="credit">
+  <div class="persona-header credit">
+    <div class="persona-icon">💳</div>
+    <div>
+      <h2>Persona 4 — Credit Admin</h2>
+      <p>Credit utilisation monitoring · OR-Tools MILP output · Manual credit release · Ledger audit</p>
+    </div>
+  </div>
+
+  <p style="color:var(--gray-700);margin-bottom:24px;">The Credit Admin has a single critical responsibility: ensure that replenishment doesn't violate credit risk policy while also not unnecessarily blocking legitimate orders. They see the MILP solver output directly — why certain SKUs were cut, what the fair-share allocation was, and have a one-click release mechanism for credit holds.</p>
+
+  <div class="feature-grid">
+    <div class="feature-card">
+      <h4>📊 Credit Utilisation Table</h4>
+      <ul>
+        <li>All distributors with live AR balance, credit limit, utilisation %</li>
+        <li>DIST-AU-BNE at 80% = <span class="tag red">CREDIT_HOLD</span></li>
+        <li>Threshold alerts: &gt;75% = amber, &gt;90% = red, 100% = hold</li>
+        <li>30-day trend sparkline per distributor</li>
+      </ul>
+    </div>
+    <div class="feature-card">
+      <h4>🔧 OR-Tools MILP Solver Output</h4>
+      <ul>
+        <li>Shows solver status: OPTIMAL / INFEASIBLE / FAIR_SHARE_APPLIED</li>
+        <li>Per-SKU: recommended ROQ vs. allocated quantity, DOS impact</li>
+        <li>Solve time (typically &lt; 5ms for 30-SKU batch)</li>
+        <li>z_min value = minimum DOS the allocation guarantees any SKU</li>
+      </ul>
+    </div>
+    <div class="feature-card">
+      <h4>🔓 Manual Credit Release</h4>
+      <ul>
+        <li>One-click release for CREDIT_HOLD distributors</li>
+        <li>Confirmation modal: shows amount being unblocked + risk</li>
+        <li>Release logged to <code>credit_allocation_ledger</code> as MANUAL_RELEASE</li>
+        <li>Triggers immediate workflow re-run for that distributor</li>
+      </ul>
+    </div>
+    <div class="feature-card">
+      <h4>📒 Allocation Ledger</h4>
+      <ul>
+        <li>Full history: solver_status, credit_available, proposed vs. allocated order value</li>
+        <li>Audit trail for finance/compliance teams</li>
+        <li>GENERATED column: credit_available = credit_total − AR − unbilled</li>
+        <li>Downloadable CSV for reconciliation</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="mock-dashboard">
+    <div class="mock-topbar">
+      <div class="mock-dot" style="background:#ef4444"></div>
+      <div class="mock-dot" style="background:#f59e0b"></div>
+      <div class="mock-dot" style="background:#22c55e"></div>
+      <span style="margin-left:8px;opacity:0.75">CRS · Credit Admin Dashboard</span>
+    </div>
+    <div class="mock-body">
+      <div class="stat-row" style="grid-template-columns: repeat(3,1fr)">
+        <div class="stat-card">
+          <div class="label">Distributors on Hold</div>
+          <div class="value" style="color:var(--red)">1</div>
+          <div class="delta down">DIST-AU-BNE</div>
+        </div>
+        <div class="stat-card">
+          <div class="label">Total Credit Available</div>
+          <div class="value">$2.14M</div>
+          <div class="delta up">74% headroom</div>
+        </div>
+        <div class="stat-card">
+          <div class="label">MILP Last Solve</div>
+          <div class="value" style="color:var(--green)">OPTIMAL</div>
+          <div class="delta up">2ms · 3 SKUs cut</div>
+        </div>
+      </div>
+
+      <div class="chart-wrap" style="margin-bottom:16px;">
+        <div class="chart-title">Credit Utilisation by Distributor</div>
+        <canvas id="creditChart" height="180"></canvas>
+      </div>
+
+      <table class="mock-table">
+        <thead><tr><th>Distributor</th><th>Credit Limit</th><th>AR Outstanding</th><th>Available</th><th>Utilisation</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>DIST-AU-SYD</td><td>$500K</td><td>$142K</td><td>$358K</td><td style="color:var(--green)">28.4%</td><td><span class="tag green">ACTIVE</span></td></tr>
+          <tr><td>DIST-AU-MEL</td><td>$750K</td><td>$310K</td><td>$440K</td><td style="color:var(--green)">41.3%</td><td><span class="tag green">ACTIVE</span></td></tr>
+          <tr><td>DIST-AU-BNE</td><td>$300K</td><td>$241K</td><td>$59K</td><td style="color:var(--red)">80.3%</td><td><span class="tag red">CREDIT_HOLD</span></td></tr>
+          <tr><td>DIST-AU-PER</td><td>$400K</td><td>$198K</td><td>$202K</td><td style="color:var(--amber)">49.5%</td><td><span class="tag green">ACTIVE</span></td></tr>
+          <tr><td>DIST-AU-ADL</td><td>$250K</td><td>$87K</td><td>$163K</td><td style="color:var(--green)">34.8%</td><td><span class="tag green">ACTIVE</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- MILP Code View -->
+  <div style="margin-top:32px;">
+    <h3 style="font-size:18px;font-weight:700;color:var(--navy);margin-bottom:12px;">OR-Tools MILP — How the Solver Works</h3>
+    <div class="milp-box">
+<span class="milp-comment"># Google OR-Tools SCIP backend — Fair-Share Allocation</span><br>
+<span class="milp-keyword">solver</span> = <span class="milp-var">cp_model.CpModel</span>() <span class="milp-comment"># MILP, not CP — uses SCIP</span><br><br>
+<span class="milp-comment"># Objective: maximise the minimum DOS any SKU achieves</span><br>
+<span class="milp-keyword">z_min</span> = solver.NewIntVar(<span class="milp-num">0</span>, <span class="milp-num">90</span>, <span class="milp-var">'z_min'</span>) <span class="milp-comment"># DOS ceiling = 90 days</span><br><br>
+<span class="milp-keyword">for</span> sku <span class="milp-keyword">in</span> tier_1_skus:<br>
+&nbsp;&nbsp;<span class="milp-comment"># Tier-1 floor: allocate ≥ 90% of recommended ROQ</span><br>
+&nbsp;&nbsp;solver.Add(x[sku] >= <span class="milp-num">0.90</span> * sku.roq)<br><br>
+<span class="milp-keyword">for</span> sku <span class="milp-keyword">in</span> all_eligible_skus:<br>
+&nbsp;&nbsp;<span class="milp-comment"># DOS constraint: allocation + NIP must achieve at least z_min DOS</span><br>
+&nbsp;&nbsp;solver.Add(x[sku] * sku.demand - z_min * sku.demand >= -sku.nip)<br><br>
+<span class="milp-comment"># Budget constraint: total order value ≤ credit available</span><br>
+solver.Add(sum(x[s] * s.unit_cost <span class="milp-keyword">for</span> s <span class="milp-keyword">in</span> skus) <= credit_available)<br><br>
+<span class="milp-keyword">solver.Maximize</span>(z_min)
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- SECTION 7 — TECHNICAL ARCHITECTURE -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+<hr class="section-divider">
+<div class="page" id="tech">
+  <div class="section-header">
+    <div class="eyebrow">Section 7 — Architecture</div>
+    <h2>Technical Stack &amp; Design Decisions</h2>
+    <p>Production-grade components, demo-scale configuration — the same algorithms would power a live VMI deployment.</p>
+  </div>
+
+  <!-- Temporal Saga -->
+  <h3 style="font-size:18px;font-weight:700;color:var(--navy);margin-bottom:16px;">⚡ Temporal.io Saga — 6-Stage Durable Workflow</h3>
+  <div class="saga-flow">
+    <div class="saga-step done">
+      <div class="saga-circle">📡</div>
+      <div class="saga-label">SENSING</div>
+      <div class="saga-sub">POS Ingest<br>+ Imputation</div>
+    </div>
+    <div class="saga-step done">
+      <div class="saga-circle">🧠</div>
+      <div class="saga-label">ROQ CALC</div>
+      <div class="saga-sub">Classify + Forecast<br>+ TSL + ROQ</div>
+    </div>
+    <div class="saga-step done">
+      <div class="saga-circle">💳</div>
+      <div class="saga-label">CREDIT CHECK</div>
+      <div class="saga-sub">ERP Query<br>AR Position</div>
+    </div>
+    <div class="saga-step done">
+      <div class="saga-circle">🔧</div>
+      <div class="saga-label">FAIR-SHARE</div>
+      <div class="saga-sub">MILP Solver<br>Allocation</div>
+    </div>
+    <div class="saga-step active">
+      <div class="saga-circle">👤</div>
+      <div class="saga-label">APPROVAL</div>
+      <div class="saga-sub">Human Gate<br>Signal Wait</div>
+    </div>
+    <div class="saga-step pending">
+      <div class="saga-circle">📤</div>
+      <div class="saga-label">ERP RELEASE</div>
+      <div class="saga-sub">Order Creation<br>+ Compensate</div>
+    </div>
+  </div>
+
+  <div class="highlight-box" style="margin-bottom:32px;">
+    <strong>Compensating Transaction:</strong> If ERP order creation fails after credit hold was placed, Temporal automatically executes <code>reverse_erp_credit_hold</code> to undo the hold — maintaining distributed consistency without a database transaction spanning multiple services.
+  </div>
+
+  <div class="tech-grid">
+    <div class="tech-card">
+      <h4>🗄️ PostgreSQL 16</h4>
+      <ul>
+        <li>Multi-tenant shared schema with tenant_id</li>
+        <li>Partitioned fact tables (by year)</li>
+        <li>Generated columns: net_inventory_pos, pct_change, credit_available</li>
+        <li>RLS-ready for tenant isolation</li>
+      </ul>
+    </div>
+    <div class="tech-card">
+      <h4>⚡ FastAPI + asyncpg</h4>
+      <ul>
+        <li>OpenAPI 3.0 spec with Swagger UI at /docs</li>
+        <li>Async connection pool (asyncpg)</li>
+        <li>Persona-based JWT authentication</li>
+        <li>structlog for structured JSON logging</li>
+      </ul>
+    </div>
+    <div class="tech-card">
+      <h4>🔮 Forecasting Engine</h4>
+      <ul>
+        <li>Pure Python: numpy + scipy (no ML infra needed)</li>
+        <li>SBA: Syntetos-Boylan debiased Croston</li>
+        <li>ETS: Simple exponential smoothing + quantile bands</li>
+        <li>TFT: Attention-based (architecture demo)</li>
+      </ul>
+    </div>
+    <div class="tech-card">
+      <h4>⚛️ React + Vite + Recharts</h4>
+      <ul>
+        <li>TypeScript + Tailwind CSS</li>
+        <li>Zustand for auth state (persisted)</li>
+        <li>TanStack Query for API caching</li>
+        <li>Recharts: AreaChart, BarChart, ReferenceLine</li>
+      </ul>
+    </div>
+    <div class="tech-card">
+      <h4>🐘 Temporal.io 1.24</h4>
+      <ul>
+        <li>Auto-setup with postgres12 backend</li>
+        <li>Workflow signals for human approval gate</li>
+        <li>Workflow queries for state inspection</li>
+        <li>Retry policies per activity type</li>
+      </ul>
+    </div>
+    <div class="tech-card">
+      <h4>📦 Synthetic FMCG Data</h4>
+      <ul>
+        <li>5 AU distributors × 30 beverage SKUs</li>
+        <li>52 weeks with realistic seasonality</li>
+        <li>Modelled stockout events + Bayesian imputation</li>
+        <li>ABC-XYZ segmentation (A/B/C revenue tiers)</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- SECTION 8 — LIVE DEMO ACCESS -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+<hr class="section-divider">
+<div class="page" id="access">
+  <div class="section-header">
+    <div class="eyebrow">Section 8 — Live Access</div>
+    <h2>Demo Environment &amp; Access</h2>
+    <p>All services are running live. No installation required — access directly from any browser.</p>
+  </div>
+
+  <div class="access-card">
+    <h3>🌐 Live Demo — Running on Azure Cloud</h3>
+    <p>Full Docker Compose stack: PostgreSQL · Temporal.io · FastAPI · React Frontend</p>
+    <div class="access-links">
+      <div class="access-link">
+        <div class="al-label">Frontend Dashboard</div>
+        <div class="al-url">http://172.174.209.56:3010</div>
+        <div class="al-sub">4 persona buttons · No login required</div>
+      </div>
+      <div class="access-link">
+        <div class="al-label">API Documentation</div>
+        <div class="al-url">http://172.174.209.56:8001/docs</div>
+        <div class="al-sub">Swagger UI · All endpoints live</div>
+      </div>
+      <div class="access-link">
+        <div class="al-label">Temporal Workflow UI</div>
+        <div class="al-url">http://172.174.209.56:8081</div>
+        <div class="al-sub">Watch saga execution in real-time</div>
+      </div>
+      <div class="access-link">
+        <div class="al-label">Source Code (Private)</div>
+        <div class="al-url">github.com/abhiavi/crs-demo</div>
+        <div class="al-sub">Request collaborator access</div>
+      </div>
+    </div>
+  </div>
+
+  <h3 style="font-size:18px;font-weight:700;color:var(--navy);margin: 24px 0 12px;">Demo Walkthrough — 5-Minute Script</h3>
+  <div class="feature-grid">
+    <div class="feature-card">
+      <h4>Step 1 — Demand Planner (90s)</h4>
+      <ul>
+        <li>Login as Demand Planner</li>
+        <li>Review Exception Triage grid — note P90 BREACH on Solo Lemon</li>
+        <li>Expand TFT attention weights — explain "promotional depth" driving 24% of forecast</li>
+        <li>Submit an override with reason PROMOTIONAL_UPLIFT</li>
+      </ul>
+    </div>
+    <div class="feature-card">
+      <h4>Step 2 — Credit Admin (60s)</h4>
+      <ul>
+        <li>Switch to Credit Admin persona</li>
+        <li>Show DIST-AU-BNE in CREDIT_HOLD at 80% utilisation</li>
+        <li>Click "View MILP Solver Output" — show z_min = 18.3 days DOS guaranteed</li>
+        <li>Click "Release Credit Hold" and confirm</li>
+      </ul>
+    </div>
+    <div class="feature-card">
+      <h4>Step 3 — Trigger Workflow (60s)</h4>
+      <ul>
+        <li>Hit <code>POST /api/v1/workflows/trigger</code> in Swagger UI</li>
+        <li>Switch to Temporal UI — watch saga progress through stages</li>
+        <li>Show the APPROVAL_WAIT pause (human-in-the-loop gate)</li>
+        <li>Send approval signal to complete the workflow</li>
+      </ul>
+    </div>
+    <div class="feature-card">
+      <h4>Step 4 — Distributor (30s)</h4>
+      <ul>
+        <li>Switch to Distributor persona</li>
+        <li>Show in-transit orders for DIST-AU-BNE</li>
+        <li>Highlight 14-day DOS projection curve</li>
+        <li>Show adjustment request form</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="highlight-box" style="margin-top:24px;">
+    <strong>Key Talking Points for Each Client Question:</strong><br><br>
+    <strong>Q1 (Forecast generation):</strong> "The system classifies every SKU-distributor pair on the ADI/CV² matrix each week. High-value SKUs get the TFT model with probabilistic P10/P50/P90 bands. Intermittent-demand SKUs use SBA, which debiases the classic Croston method by a factor of (1−α/2). The Target Stock Level formula explicitly accounts for lead-time variance, not just demand variance."<br><br>
+    <strong>Q2 (Overrides):</strong> "Any of the 4 personas can influence the replenishment — but every change is logged with the original quantity, the new quantity, the reason code, and the user ID. More importantly, the system calculates Forecast Value Added: if your override made the forecast worse than a naive baseline, you get flagged on the next cycle. This creates accountability without restricting human judgment."<br><br>
+    <strong>Q3 (Fair-share credit):</strong> "We use a MILP solver from Google OR-Tools. The objective is to maximise the minimum Days-of-Stock any SKU achieves — not to cut proportionally. Tier-1 SKUs get a 90% floor, so strategic products are never starved. The solver runs in under 5 milliseconds for a 30-SKU batch, so it fits inside the replenishment cycle runtime."
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- FOOTER -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+<div style="background:var(--navy);color:#fff;padding:32px 40px;margin-top:56px;text-align:center;">
+  <p style="font-size:14px;opacity:0.8;">Continuous Replenishment System (CRS) · FMCG Beverages Demo · Australia</p>
+  <p style="font-size:12px;opacity:0.5;margin-top:6px;">Built with Temporal.io · FastAPI · OR-Tools MILP · React · PostgreSQL 16 · Deployed on Azure</p>
+  <p style="font-size:12px;opacity:0.5;margin-top:4px;">Confidential — Prepared for APAC Consulting Engagement · August 2026</p>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- CHARTS -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+<script>
+// Forecast bands chart
+(function(){
+  const labels = [];
+  const p10=[],p50=[],p90=[],actual=[];
+  const today = new Date();
+  for(let i=13;i>=0;i--){
+    const d = new Date(today);
+    d.setDate(d.getDate()-i+7);
+    labels.push(d.toLocaleDateString('en-AU',{month:'short',day:'numeric'}));
+    const base = 450+Math.sin(i/3)*20;
+    p50.push(+(base+(Math.random()-0.5)*10).toFixed(0));
+    p10.push(+(base*0.75).toFixed(0));
+    p90.push(+(base*1.30).toFixed(0));
+    actual.push(i>7?null:+(base*(0.88+Math.random()*0.24)).toFixed(0));
+  }
+  new Chart(document.getElementById('forecastChart'),{
+    type:'line',
+    data:{labels,datasets:[
+      {label:'P90',data:p90,borderColor:'#bfdbfe',backgroundColor:'rgba(191,219,254,0.15)',fill:true,tension:0.4,pointRadius:0},
+      {label:'P50',data:p50,borderColor:'#1d4ed8',borderWidth:2,fill:false,tension:0.4,pointRadius:2},
+      {label:'P10',data:p10,borderColor:'#bfdbfe',backgroundColor:'rgba(191,219,254,0.15)',fill:true,tension:0.4,pointRadius:0},
+      {label:'Actual',data:actual,borderColor:'#1e3a5f',borderWidth:2,fill:false,tension:0.3,pointRadius:3,borderDash:[]}
+    ]},
+    options:{responsive:true,plugins:{legend:{position:'top'}},scales:{y:{title:{display:true,text:'Units'}}}}
+  });
+})();
+
+// Attention weights
+(function(){
+  const data=['Lag W-52','Promo Depth','Day of Week','Weather Idx','Lag W-4','Holiday','Price Idx'];
+  const vals=[31,24,18,12,8,5,2];
+  const colors=vals.map(v=>v>20?'#1d4ed8':v>10?'#3b82f6':'#93c5fd');
+  new Chart(document.getElementById('attentionChart'),{
+    type:'bar',
+    data:{labels:data,datasets:[{label:'Attention Weight %',data:vals,backgroundColor:colors,borderRadius:4}]},
+    options:{indexAxis:'y',responsive:true,plugins:{legend:{display:false}},scales:{x:{title:{display:true,text:'%'}}}}
+  });
+})();
+
+// DOS by distributor
+(function(){
+  const dists=['SYD','MEL','BNE','PER','ADL'];
+  const dos=[34.2,28.1,8.3,22.6,31.0];
+  const colors=dos.map(d=>d<14?'#dc2626':d<21?'#d97706':'#16a34a');
+  new Chart(document.getElementById('dosChart'),{
+    type:'bar',
+    data:{labels:dists,datasets:[
+      {label:'Current DOS (days)',data:dos,backgroundColor:colors,borderRadius:6},
+      {label:'Safety Stock Line',data:[14,14,14,14,14],type:'line',borderColor:'#dc2626',borderDash:[6,3],pointRadius:0,fill:false}
+    ]},
+    options:{responsive:true,plugins:{legend:{position:'top'}},scales:{y:{title:{display:true,text:'Days of Stock'}}}}
+  });
+})();
+
+// Projection chart
+(function(){
+  const labels=[];
+  const today=new Date();
+  for(let i=0;i<14;i++){const d=new Date(today);d.setDate(d.getDate()+i);labels.push(d.toLocaleDateString('en-AU',{month:'short',day:'numeric'}));}
+  const sku1=[22,20,18,16,14,13,22,21,20,19,18,17,16,15]; // inbound arrives day 6
+  const sku2=[8,7,6,5,4,18,17,16,15,14,13,12,11,10];
+  const sku3=[35,33,31,29,27,25,23,21,19,18,17,16,15,14];
+  new Chart(document.getElementById('projectionChart'),{
+    type:'line',
+    data:{labels,datasets:[
+      {label:'Solo Lemon',data:sku1,borderColor:'#1d4ed8',backgroundColor:'rgba(29,78,216,0.08)',fill:true,tension:0.4,pointRadius:2},
+      {label:'Powerade',data:sku2,borderColor:'#d97706',backgroundColor:'rgba(217,119,6,0.08)',fill:true,tension:0.4,pointRadius:2},
+      {label:'Golden Circle OJ',data:sku3,borderColor:'#16a34a',backgroundColor:'rgba(22,163,74,0.08)',fill:true,tension:0.4,pointRadius:2}
+    ]},
+    options:{responsive:true,plugins:{legend:{position:'top'},annotation:{annotations:{safetyLine:{type:'line',yMin:14,yMax:14,borderColor:'#dc2626',borderWidth:1,borderDash:[5,5]}}}},scales:{y:{title:{display:true,text:'DOS (days)'}}}}
+  });
+})();
+
+// Credit utilisation
+(function(){
+  const dists=['DIST-AU-SYD','DIST-AU-MEL','DIST-AU-BNE','DIST-AU-PER','DIST-AU-ADL'];
+  const util=[28.4,41.3,80.3,49.5,34.8];
+  const colors=util.map(u=>u>75?'#dc2626':u>50?'#d97706':'#16a34a');
+  new Chart(document.getElementById('creditChart'),{
+    type:'bar',
+    data:{labels:dists,datasets:[
+      {label:'Credit Utilisation %',data:util,backgroundColor:colors,borderRadius:6},
+      {label:'Warning (75%)',data:[75,75,75,75,75],type:'line',borderColor:'#d97706',borderDash:[6,3],pointRadius:0,fill:false}
+    ]},
+    options:{responsive:true,plugins:{legend:{position:'top'}},scales:{y:{min:0,max:100,title:{display:true,text:'Utilisation %'}}}}
+  });
+})();
+</script>
+</body>
+</html>
