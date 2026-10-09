@@ -221,5 +221,5 @@ Access via Tailscale: `http://${OLLAMA_HOST}:3000`
 
 ---
 
-*Built on the Adraca Sovereign AI Fleet — LiteLLM gateway powering all ML inference.*
+*Built on a self-hosted sovereign AI fleet — LiteLLM gateway powering all ML inference.*
 *Architecture: qwen3-coder-480b (code) · deepseek-v4-pro (math) · nemotron-super-120b (frontend) · gemini-2.5-flash (data)*
