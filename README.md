@@ -208,7 +208,7 @@ crs-demo/
 
 ## Deployment on Oracle Cloud (Nomad)
 
-This stack is deployed on `adraca-oracle-03` (${OLLAMA_HOST}) via Nomad:
+This stack is deployed on `an Ollama host` (${OLLAMA_HOST}) via Nomad:
 
 ```bash
 # From azure-01
